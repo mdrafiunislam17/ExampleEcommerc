@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\News; // Updated to "Models" namespace
+use Exception;
 use Faker\Provider\Image;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Storage;
 use Ramsey\Uuid\Guid\Guid;
 
 class NewsController extends Controller
@@ -20,83 +23,105 @@ class NewsController extends Controller
         return view('admin.news_event.add');
     }
 
-    public function addPost(Request $request) {
+    public function addPost(Request $request)
+    {
         $request->validate([
             'name' => 'required|max:255',
-            'image' => 'nullable|image',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'description' => 'required',
         ]);
+        try {
+            $news = new News();
 
-        $filename = '';
-        if ($request->hasFile('image')) {
-            // Upload Image
-            $file = $request->file('image');
-            $filename = Guid::uuid4()->toString() . '.' . $file->getClientOriginalExtension();
-            $destinationPath = 'public/uploads/news';
-            $file->move($destinationPath, $filename);
+            if ($request->hasFile("image")) {
+                $image = $request->file("image");
+                $imageName = time() . "." . $image->getClientOriginalExtension();
+                $image->storeAs("public/uploads/news", $imageName);
+                $news->image = $imageName;
+            }
 
-            // Thumbnails
-            $img = Image::make($destinationPath . '/' . $filename);
-            $img->resize(364, 254);
-            $img->save(public_path('uploads/news/thumbs/' . $filename), 50);
+            $news->name = $request->input('name');
+            $news->description = $request->input('description');
+
+            $news->save();
+
+            return redirect()->route('admin.news.index')->with('message', 'Slider added successfully.');
+        } catch (QueryException $exception) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with("error", "QueryException code: " . $exception->getCode());
         }
 
-        $news = new News();
-        $news->name = $request->name;
-        $news->description = $request->description;
-        $news->image = $filename;
-        $news->save();
-
-        return redirect()->route('admin_all_news')->with('message', 'News/Event added successfully.');
     }
 
     public function edit(News $news) {
         return view('admin.news_event.edit', compact('news'));
     }
 
-    public function editPost(News $news, Request $request) {
+    public function editPost(News $news, Request $request)
+    {
         $request->validate([
             'name' => 'required|max:255',
-            'image' => 'nullable|image',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'description' => 'required',
         ]);
 
-        if ($request->hasFile('image')) {
-            // Delete the old image if it exists (use unlink)
-            if ($news->image) {
-                unlink(public_path('uploads/news/' . $news->image));
-                unlink(public_path('uploads/news/thumbs/' . $news->image)); // Deleting the thumbnail
+        try {
+            // Update name & description
+            $news->name = $request->input('name');
+            $news->description = $request->input('description');
+
+            // Handle image upload
+            if ($request->hasFile('image')) {
+                $image = $request->file('image');
+                $imageName = time() . '.' . $image->getClientOriginalExtension();
+                $image->storeAs('public/uploads/news', $imageName);
+
+                // Delete old image if exists
+                if ($news->image) {
+                    $oldImagePath = public_path('storage/uploads/news/' . $news->image);
+                    if (file_exists($oldImagePath)) {
+                        unlink($oldImagePath);
+                    }
+                }
+
+                // Save new image name
+                $news->image = $imageName;
             }
 
-            $file = $request->file('image');
-            $filename = Guid::uuid4()->toString() . '.' . $file->getClientOriginalExtension();
-            $destinationPath = 'public/uploads/news';
-            $file->move($destinationPath, $filename);
+            $news->save();
 
-            $news->image = $filename;
-
-            // Thumbnails
-            $img = Image::make($destinationPath . '/' . $filename);
-            $img->resize(364, 254);
-            $img->save(public_path('uploads/news/thumbs/' . $filename), 50);
+            return redirect()->route('admin.news.index')->with('message', 'News updated successfully.');
+        } catch (QueryException $exception) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'QueryException code: ' . $exception->getCode());
         }
-
-        $news->name = $request->name;
-        $news->description = $request->description;
-        $news->save();
-
-        return redirect()->route('admin_all_news')->with('message', 'News/Event updated successfully.');
     }
 
-    public function delete(Request $request) {
-        $news = News::findOrFail($request->id);
 
-        // Delete associated files
-        if ($news->image) {
-            unlink(public_path('uploads/news/' . $news->image));
-            unlink(public_path('uploads/news/thumbs/' . $news->image)); // Deleting the thumbnail
+
+
+    public function delete(Request $request)
+    {
+        try {
+            // AJAX থেকে প্রাপ্ত ID দিয়ে Slider খুঁজে বের করা
+            $news = News::findOrFail($request->id);
+
+            // ইমেজ ডিলিট করার অংশ
+            $imagePath = "public/uploads/news/" . $news->image;
+            if ($news->image && Storage::exists($imagePath)) {
+                Storage::delete($imagePath);
+            }
+
+            // ডাটাবেজ থেকে স্লাইডার ডিলিট
+            $news->delete();
+
+            return response()->json(['success' => true, 'message' => 'Slider deleted successfully!']);
+        } catch (Exception $exception) {
+            return response()->json(['success' => false, 'message' => $exception->getMessage()]);
         }
-
-        $news->delete();
     }
 }

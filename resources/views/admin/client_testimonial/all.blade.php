@@ -24,37 +24,42 @@
                     <hr>
 
                     <table id="table" class="table table-bordered">
-                       <thead>
-                       <tr>
-                           <th>Sl</th>
-                           <th>Image</th>
-                           <th>Name</th>
-                           <th>Designation</th>
-                           <th>Description</th>
-                           <th>Date</th>
-                           <th width="15%">Action</th>
-                       </tr>
-                       </thead>
+                        <thead>
+                        <tr>
+                            <th>Sl</th>
+                            <th>Image</th>
+                            <th>Name</th>
+                            <th>Designation</th>
+                            <th>Description</th>
+                            <th>Date</th>
+                            <th width="15%">Action</th>
+                        </tr>
+                        </thead>
 
-                       <tbody>
-                       @foreach($says as $item)
-                           <tr>
-                               <td>{{ $loop->iteration }}</td>
-                               <td>
-                                   <img src="{{ asset('uploads/client_testimonial/thumbs/'.$item->image) }}" height="50px">
-                               </td>
-                               <td>{{ $item->name }}</td>
-                               <td>{{ $item->designation }}</td>
-                               <td>{{ $item->description }}</td>
-                               <td>{{ date('d-m-Y',strtotime($item->created_at)) }}</td>
-                               <td>
-                                   <a class="btn btn-primary btn-sm" href="{{ route('admin.admin_edit_client_testimonial', ['say' => $item->id]) }}">Edit</a>
-                                   <a role="button" class="btn btn-danger btn-sm btnDelete" data-id="{{ $item->id }}">Delete</a>
+                        <tbody>
+                        @foreach($says as $item)
+                            <tr>
+                                <td>{{ $loop->iteration }}</td>
+                                <td>
+                                    <img src="{{ asset('storage/uploads/Client/' . $item->image) }}" height="50px">
 
-                               </td>
-                           </tr>
-                       @endforeach
-                       </tbody>
+                                </td>
+                                <td>{{ $item->name }}</td>
+                                <td>{{ $item->designation }}</td>
+                                <td>{{ $item->description }}</td>
+                                <td>{{ date('d-m-Y',strtotime($item->created_at)) }}</td>
+                                <td>
+                                    <a class="btn btn-primary btn-sm" href="{{ route('admin.admin_edit_client_testimonial', ['say' => $item->id]) }}">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a role="button" class="btn btn-danger btn-sm btnDelete" data-id="{{ $item->id }}">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a>
+
+                                </td>
+                            </tr>
+                        @endforeach
+                        </tbody>
                     </table>
                 </div>
 
@@ -62,25 +67,36 @@
         </div>
     </div>
 
-    <div class="modal modal-danger fade" id="modal-delete">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title">Delete</h4>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure want to delete?</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-outline" id="modalBtnDelete">Delete</button>
+
+        <!-- /.modal-dialog -->
+
+        <div class="modal fade" id="modal-delete" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title" id="deleteModalLabel">
+                            <i class="fas fa-exclamation-triangle"></i> Confirm Delete
+                        </h5>
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
+                        <p class="lead">Are you sure you want to delete this item?</p>
+                        <small class="text-muted">This action cannot be undone.</small>
+                    </div>
+                    <div class="modal-footer justify-content-center">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button type="button" class="btn btn-danger" id="modalBtnDelete">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
                 </div>
             </div>
-            <!-- /.modal-content -->
         </div>
-        <!-- /.modal-dialog -->
     </div>
     <!-- /.modal -->
 @stop
@@ -96,6 +112,8 @@
         })
     </script>
     <script>
+
+
         $(function () {
             var selectedId;
 
@@ -106,13 +124,22 @@
 
             $('#modalBtnDelete').click(function () {
                 $.ajax({
-                    method: "POST",
+                    type: "DELETE", // DELETE method ব্যবহার করো
                     url: "{{ route('admin.admin_delete_client_testimonial') }}",
-                    data: { id: selectedId }
-                }).done(function( msg ) {
-                    location.reload();
+                    data: {
+                        id: selectedId,
+                        _token: '{{ csrf_token() }}' // CSRF টোকেন পাঠানো হচ্ছে
+                    },
+                    success: function(response) {
+                        location.reload();
+                    },
+                    error: function(xhr) {
+                        console.log(xhr.responseText);
+                        alert("Error: " + xhr.responseText);
+                    }
                 });
             });
         });
+
     </script>
 @stop

@@ -39,13 +39,18 @@
                            <tr>
                                <td>{{ $loop->iteration }}</td>
                                <td>
-                                   <img src="{{ asset('uploads/news/thumbs/'.$item->image) }}" height="50px">
+                                   <img src="{{ asset('storage/uploads/news/'.$item->image) }}" height="50px">
+
+
                                </td>
                                <td>{{ $item->name }}</td>
                                <td>{{ date('d-m-Y',strtotime($item->created_at)) }}</td>
                                <td>
-                                   <a class="btn btn-primary btn-sm" href="{{ route('admin.product.category.addPost', ['news' => $item->id]) }}">Edit</a>
-                                   <a role="button" class="btn btn-danger btn-sm btnDelete" data-id="{{ $item->id }}">Delete</a>
+                                   <a class="btn btn-primary btn-sm" href="{{ route('admin.news.edit', ['news' => $item->id]) }}">
+                                       <i class="fas fa-edit"></i></a>
+                                   <a role="button" class="btn btn-danger btn-sm btnDelete" data-id="{{ $item->id }}">
+                                       <i class="fas fa-trash-alt"></i>
+                                   </a>
 
                                </td>
                            </tr>
@@ -58,26 +63,32 @@
         </div>
     </div>
 
-    <div class="modal modal-danger fade" id="modal-delete">
-        <div class="modal-dialog">
+    <div class="modal fade" id="modal-delete" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title">Delete</h4>
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="deleteModalLabel">
+                        <i class="fas fa-exclamation-triangle"></i> Confirm Delete
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
-                <div class="modal-body">
-                    <p>Are you sure want to delete?</p>
+                <div class="modal-body text-center">
+                    <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
+                    <p class="lead">Are you sure you want to delete this item?</p>
+                    <small class="text-muted">This action cannot be undone.</small>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-outline" id="modalBtnDelete">Delete</button>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="button" class="btn btn-danger" id="modalBtnDelete">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
                 </div>
             </div>
-            <!-- /.modal-content -->
         </div>
-        <!-- /.modal-dialog -->
-    </div>
     <!-- /.modal -->
 @stop
 
@@ -92,23 +103,35 @@
         })
     </script>
     <script>
-        $(function () {
-            var selectedId;
 
-            $('.btnDelete').click(function () {
-                $('#modal-delete').modal('show');
-                selectedId = $(this).data('id');
-            });
 
-            $('#modalBtnDelete').click(function () {
-                $.ajax({
-                    method: "POST",
-                    url: "{{ route('admin.news.delete') }}",
-                    data: { id: selectedId }
-                }).done(function( msg ) {
-                    location.reload();
+            $(function () {
+                var selectedId;
+
+                $('.btnDelete').click(function () {
+                    $('#modal-delete').modal('show');
+                    selectedId = $(this).data('id');
+                });
+
+                $('#modalBtnDelete').click(function () {
+                    $.ajax({
+                        type: "DELETE", // DELETE method ব্যবহার করো
+                        url: "{{ route('admin.news.delete') }}",
+                        data: {
+                            id: selectedId,
+                            _token: '{{ csrf_token() }}' // CSRF টোকেন পাঠানো হচ্ছে
+                        },
+                        success: function(response) {
+                            location.reload();
+                        },
+                        error: function(xhr) {
+                            console.log(xhr.responseText);
+                            alert("Error: " + xhr.responseText);
+                        }
+                    });
                 });
             });
-        });
+
+
     </script>
 @stop

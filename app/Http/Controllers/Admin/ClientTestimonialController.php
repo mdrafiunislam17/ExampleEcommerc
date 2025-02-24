@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\ClientTestimonial;  // Ensure you're using the correct namespace
+use Exception;
 use Faker\Provider\Image;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Ramsey\Uuid\Uuid;
@@ -27,34 +29,34 @@ class ClientTestimonialController extends Controller
         $request->validate([
             'name' => 'required|max:255',
             'designation' => 'nullable|max:255',
-            'image' => 'nullable|image',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'description' => 'required',
         ]);
 
-        $filename = '';
-        if ($request->hasFile('image')) {
-            // Upload Image
-            $file = $request->file('image');
-            $filename = Uuid::uuid1()->toString() . '.' . $file->getClientOriginalExtension();
-            $destinationPath = storage_path('app/public/uploads/client_testimonial');
-            $file->move($destinationPath, $filename);
+        try {
+            $clientTestimonial = new ClientTestimonial();
 
-            // Thumbs
-            $img = Image::make($destinationPath . '/' . $filename);
-            $img->resize(110, 75);
-            $img->save(storage_path('app/public/uploads/client_testimonial/thumbs/' . $filename), 60);
+            if ($request->hasFile("image")) {
+                $image = $request->file("image");
+                $imageName = time() . "." . $image->getClientOriginalExtension();
+                $image->storeAs("public/uploads/Client", $imageName);
+                $clientTestimonial->image = $imageName;
+            }
+
+            $clientTestimonial->name = $request->input('name');
+            $clientTestimonial->designation = $request->input('designation');
+            $clientTestimonial->description = $request->input('description');
+
+            $clientTestimonial->save();
+
+            return redirect()->route('admin.admin_all_client_testimonial')->with('message', 'Slider added successfully.');
+        } catch (QueryException $exception) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with("error", "QueryException code: " . $exception->getCode());
         }
-
-        $say = new ClientTestimonial();
-        $say->name = $request->name;
-        $say->designation = $request->designation;
-        $say->description = $request->description;
-        $say->image = $filename;
-        $say->save();
-
-        return redirect()->route('admin_all_client_testimonial')->with('message', 'Client testimonial added successfully.');
     }
-
     public function edit(ClientTestimonial $say)
     {
         return view('admin.client_testimonial.edit', compact('say'));
@@ -65,49 +67,63 @@ class ClientTestimonialController extends Controller
         $request->validate([
             'name' => 'required|max:255',
             'designation' => 'nullable|max:255',
-            'image' => 'nullable|image',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Image is optional here
             'description' => 'required',
         ]);
 
-        if ($request->hasFile('image')) {
-            // Delete old image files if a new image is uploaded
-            if (Storage::exists('public/uploads/client_testimonial/' . $say->image)) {
-                Storage::delete('public/uploads/client_testimonial/' . $say->image);
-                Storage::delete('public/uploads/client_testimonial/thumbs/' . $say->image);
+        try {
+            // Update basic fields
+            $say->name = $request->input('name');
+            $say->designation = $request->input('designation');
+            $say->description = $request->input('description');
+
+            // Check if new image is uploaded
+            if ($request->hasFile('image')) {
+                // Delete old image if exists
+                if ($say->image && Storage::exists('public/uploads/Client/' . $say->image)) {
+                    Storage::delete('public/uploads/Client/' . $say->image);
+                }
+
+                // Store new image
+                $image = $request->file('image');
+                $imageName = time() . "." . $image->getClientOriginalExtension();
+                $image->storeAs('public/uploads/Client', $imageName);
+                $say->image = $imageName;
             }
 
-            $file = $request->file('image');
-            $filename = Uuid::uuid1()->toString() . '.' . $file->getClientOriginalExtension();
-            $destinationPath = storage_path('app/public/uploads/client_testimonial');
-            $file->move($destinationPath, $filename);
+            $say->save();
 
-            // Thumbs
-            $img = Image::make($destinationPath . '/' . $filename);
-            $img->resize(110, 75);
-            $img->save(storage_path('app/public/uploads/client_testimonial/thumbs/' . $filename), 60);
-
-            $say->image = $filename;
+            return redirect()->route('admin.admin_all_client_testimonial')->with('message', 'Testimonial updated successfully.');
+        } catch (QueryException $exception) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'QueryException code: ' . $exception->getCode());
         }
-
-        $say->name = $request->name;
-        $say->designation = $request->designation;
-        $say->description = $request->description;
-        $say->save();
-
-        return redirect()->route('admin_all_client_testimonial')->with('message', 'Client testimonial updated successfully.');
     }
+
+
+
 
     public function delete(Request $request)
     {
-        $say = ClientTestimonial::find($request->id);
+        try {
+            // AJAX থেকে প্রাপ্ত ID দিয়ে Slider খুঁজে বের করা
+            $say = ClientTestimonial::findOrFail($request->id);
 
-        // Delete image files
-        if ($say) {
-            Storage::delete('public/uploads/client_testimonial/' . $say->image);
-            Storage::delete('public/uploads/client_testimonial/thumbs/' . $say->image);
+            // ইমেজ ডিলিট করার অংশ
+            $imagePath = "public/uploads/Client/" . $say->image;
+            if ($say->image && Storage::exists($imagePath)) {
+                Storage::delete($imagePath);
+            }
+
+            // ডাটাবেজ থেকে স্লাইডার ডিলিট
             $say->delete();
-        }
 
-        return redirect()->route('admin_all_client_testimonial')->with('message', 'Client testimonial deleted successfully.');
+            return response()->json(['success' => true, 'message' => 'Slider deleted successfully!']);
+        } catch (Exception $exception) {
+            return response()->json(['success' => false, 'message' => $exception->getMessage()]);
+        }
     }
+
 }

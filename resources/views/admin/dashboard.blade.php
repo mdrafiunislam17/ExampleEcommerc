@@ -17,7 +17,7 @@
         </div>
         <!-- /.col -->
         <div class="col-md-3 col-sm-6 col-xs-12">
-            <a href="{{route('admin.admin_all_about')}}" class="info-box">
+            <a href="{{route('admin.all_about')}}" class="info-box">
                 <span class="info-box-icon bg-yellow"><i class="fa fa-picture-o"></i></span>
 
                 <div class="info-box-content">
@@ -34,7 +34,7 @@
 
                 <div class="info-box-content">
                     <span class="info-box-text">Team Members</span>
-                    <span class="info-box-number">{{ $data['team'] }}</span>
+                    <span class="info-box-number">{{ $data['teams'] }}</span>
                 </div>
                 <!-- /.info-box-content -->
             </a>
@@ -53,12 +53,12 @@
             <!-- /.info-box -->
         </div>
         <div class="col-md-3 col-sm-6 col-xs-12">
-            <a href="{{route('admin.admin_all_certificate')}}" class="info-box">
+            <a href="{{route('admin.all_certificate')}}" class="info-box">
                 <span class="info-box-icon bg-yellow"><i class="fa fa-image"></i></span>
 
                 <div class="info-box-content">
                     <span class="info-box-text">Certificate & Membership</span>
-                    <span class="info-box-number">{{ $data['certificate'] }}</span>
+                    <span class="info-box-number">{{ $data['certificates'] }}</span>
                 </div>
                 <!-- /.info-box-content -->
             </a>
@@ -72,14 +72,14 @@
 
                 <div class="info-box-content">
                     <span class="info-box-text">Busniess Area</span>
-                    <span class="info-box-number">{{ $data['service'] }}</span>
+                    <span class="info-box-number">{{ $data['services'] }}</span>
                 </div>
                 <!-- /.info-box-content -->
             </a>
             <!-- /.info-box -->
         </div>
         <div class="col-md-3 col-sm-6 col-xs-12">
-            <a href="{{route('admin.galleries')}}" class="info-box">
+            <a href="{{route('admin.gallery-images.index')}}" class="info-box">
                 <span class="info-box-icon bg-red"><i class="fa fa-picture-o"></i></span>
 
                 <div class="info-box-content">
@@ -106,7 +106,7 @@
 
 
         <div class="col-md-3 col-sm-6 col-xs-12">
-            <a href="{{route('admin.admin_all_news')}}" class="info-box">
+            <a href="{{route('admin.news.index')}}" class="info-box">
                 <span class="info-box-icon bg-aqua"><i class="fa fa-cube"></i></span>
 
                 <div class="info-box-content">
@@ -118,7 +118,7 @@
             <!-- /.info-box -->
         </div>
         <div class="col-md-3 col-sm-6 col-xs-12">
-            <a href="{{route('admin.job.apply.list')}}" class="info-box">
+            <a href="{{route('admin.jobs')}}" class="info-box">
                 <span class="info-box-icon bg-yellow"><i class="fa fa-image"></i></span>
 
                 <div class="info-box-content">

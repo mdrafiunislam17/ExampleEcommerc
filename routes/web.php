@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\SliderController;
 use App\Http\Controllers\Admin\TeamController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\OnlineJobController;
 use App\Models\JobNotice;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -69,10 +70,16 @@ Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::get('/association-links/edit/{link}', [AssociationLinkController::class, 'edit'])->name('association_web_url_edit');
 
     // Handle the form submission to update an association link
-    Route::post('/association-links/edit/{link}', [AssociationLinkController::class, 'editPost'])->name('association_web_url_edit_post');
+//    Route::post('/association-links/edit/{link}', [AssociationLinkController::class, 'editPost'])
+//        ->name('association_web_url_edit_post');
+
+    Route::post('/association-links/edit/{link}', [AssociationLinkController::class, 'editPost'])
+        ->name('association_web_url_edit_post');
+
 
     // Delete an association link
-    Route::delete('/association-links/delete/{link}', [AssociationLinkController::class, 'delete'])->name('association_web_url_delete');
+    Route::delete('/association-links/delete', [AssociationLinkController::class, 'delete'])
+        ->name('association_web_url_delete');
 
 
 
@@ -94,18 +101,21 @@ Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::post('clients/delete', [ClientController::class, 'deleteClient'])->name('delete.client');
 
 
-    Route::get('client-testimonials', [ClientTestimonialController::class, 'index'])->name('admin_all_client_testimonial');
+    Route::get('client-testimonials', [ClientTestimonialController::class, 'index'])
+        ->name('admin_all_client_testimonial');
     Route::get('client-testimonials/add', [ClientTestimonialController::class, 'add'])->name('admin_add_client_testimonial');
-    Route::post('client-testimonials/add', [ClientTestimonialController::class, 'addPost'])->name('admin_add_client_testimonial_post');
+    Route::post('client-testimonials/add', [ClientTestimonialController::class, 'addPost'])
+        ->name('admin_add_client_testimonial_post');
     Route::get('client-testimonials/edit/{say}', [ClientTestimonialController::class, 'edit'])->name('admin_edit_client_testimonial');
     Route::post('client-testimonials/edit/{say}', [ClientTestimonialController::class, 'editPost'])->name('admin_edit_client_testimonial_post');
-    Route::post('client-testimonials/delete', [ClientTestimonialController::class, 'delete'])->name('admin_delete_client_testimonial');
+    Route::delete('client-testimonials/delete', [ClientTestimonialController::class, 'delete'])->name('admin_delete_client_testimonial');
 
     Route::get('customer-categories', [CustomerCategoryController::class, 'index'])->name('customer.category');
     Route::get('customer-categories/add', [CustomerCategoryController::class, 'add'])->name('customer.category.add');
     Route::post('customer-categories/add', [CustomerCategoryController::class, 'addPost'])->name('customer.category.addPost');
     Route::get('customer-categories/edit/{category}', [CustomerCategoryController::class, 'edit'])->name('customer.category.edit');
     Route::post('customer-categories/edit/{category}', [CustomerCategoryController::class, 'editPost'])->name('customer.category.editPost');
+    Route::delete('customer-categories/delete', [CustomerCategoryController::class, 'delete'])->name('customer.category.delete');
 
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -142,10 +152,26 @@ Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::get('job-notice/edit/{jobNotice}', [JobNoticeController::class, 'edit'])->name('job.notice.edit');
     Route::post('job-notice/edit/{jobNotice}', [JobNoticeController::class, 'editPost'])->name('job.notice.editPost');
     Route::delete('job-notice/delete', [JobNoticeController::class, 'delete'])->name('job.notice.delete');
-    Route::get('job-applies', [JobNoticeController::class, 'jobApplyList'])->name('job.apply.list');
-    Route::post('job-apply/delete', [JobNoticeController::class, 'jobApplyDelete'])->name('job.apply.delete');
-    Route::get('job-apply/details/{id}', [JobNoticeController::class, 'jobApplyDetails'])->name('job.apply.details');
+//    Route::get('job-applies', [JobNoticeController::class, 'jobApplyList'])->name('job.apply.list');
+//    Route::delete('job-apply/delete', [JobNoticeController::class, 'jobApplyDelete'])->name('job.apply.delete');
+//    Route::post('job-apply',[JobNoticeController::class, 'jobApply'])->name('job.apply');
+//    Route::get('job-apply/add',[JobNoticeController::class, 'jobApplyAdd'])->name('job.applyAdd');
+//    Route::get('job-apply/details/{id}', [JobNoticeController::class, 'jobApplyDetails'])->name('job.apply.details');
 
+//    Route::resource('jobs', OnlineJobController::class);
+    Route::get('jobs',[OnlineJobController::class, 'index'])->name('jobs');
+    Route::get('job/create', [OnlineJobController::class, 'create'])->name('job.create');
+    Route::post('job/store', [OnlineJobController::class,'store'])->name('job.store');;
+    Route::delete('jobs/{id}', [OnlineJobController::class, 'destroy'])->name('jobs.destroy');
+
+
+//
+//    Route::get('job-apply/add/{id}', [JobNoticeController::class, 'jobApplyAdd'])->name('job.applyAdd');
+//    Route::post('job-apply', [JobNoticeController::class, 'jobApply'])->name('job.apply');
+//    Route::get('job-apply/details/{id}', [JobNoticeController::class, 'jobApplyDetails'])->name('job.apply.details');
+//    Route::get('job-apply/edit/{id}', [JobNoticeController::class, 'jobApplyEdit'])->name('job.apply.edit');
+//    Route::post('job-apply/edit/{id}', [JobNoticeController::class, 'jobApplyUpdate'])->name('job.apply.editPost');
+//    Route::get('job-apply/delete/{id}', [JobNoticeController::class, 'jobApplyDelete'])->name('job.apply.delete');
 
 
     Route::get('news-events', [NewsController::class, 'index'])->name('news.index');
@@ -153,7 +179,7 @@ Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::post('news-event/add', [NewsController::class, 'addPost'])->name('news.addPost');
     Route::get('news-event/edit/{news}', [NewsController::class, 'edit'])->name('news.edit');
     Route::post('news-event/edit/{news}', [NewsController::class, 'editPost'])->name('news.editPost');
-    Route::post('news-event/delete', [NewsController::class, 'delete'])->name('news.delete');
+    Route::delete('news-event/delete', [NewsController::class, 'delete'])->name('news.delete');
 
 
     Route::get('brand', [BrandController::class, 'index'])->name('brand');

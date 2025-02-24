@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\AssociationWebLink; // Use App\Models
+use Exception;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
@@ -24,16 +25,17 @@ class AssociationLinkController extends Controller
     public function addPost(Request $request) {
         $request->validate([
             'name' => 'required|max:255',
-            'web_url' => 'required|url|max:255', // Added url validation
+            'web_url' => 'required|url|max:255|unique:association_web_links,web_url', // Added unique validation
         ]);
 
         $link = new AssociationWebLink();
-        $link->name = $request->name;
-        $link->web_url = $request->web_url;
+        $link->name = $request->input('name');
+        $link->web_url = $request->input('web_url');
         $link->save();
 
-        return redirect()->route('admin_association_web_url')->with('message', 'Association web URL added successfully.');
+        return redirect()->route('admin.association_web_url')->with('message', 'Association web URL added successfully.');
     }
+
 
     // Show the edit form with the existing link
     public function edit(AssociationWebLink $link) {
@@ -41,28 +43,44 @@ class AssociationLinkController extends Controller
     }
 
     // Handle the form submission to update the link
-    public function editPost(AssociationWebLink $link, Request $request) {
+    public function editPost(Request $request, $id) {
+        // রেকর্ড খুঁজে বের করো
+        $link = AssociationWebLink::findOrFail($id);
+
+        // ফর্ম ভ্যালিডেশন
         $request->validate([
             'name' => 'required|max:255',
-            'web_url' => 'required|url|max:255', // Added url validation
+            'web_url' => "required|url|max:255|unique:association_web_links,web_url,{$id}", // Ensure uniqueness except for the current record
         ]);
 
-        $link->name = $request->name;
-        $link->web_url = $request->web_url;
+        // ডাটা আপডেট করো
+        $link->name = $request->input('name');
+        $link->web_url = $request->input('web_url');
         $link->save();
 
-        return redirect()->route('admin_association_web_url')->with('message', 'Association web URL updated successfully.');
+        // সফল মেসেজ সহ রিডাইরেক্ট
+        return redirect()->route('admin.association_web_url')->with('message', 'Association web URL updated successfully.');
     }
+
 
     // Handle the delete operation
-    public function delete(Request $request) {
-        $link = AssociationWebLink::find($request->id);
 
-        if ($link) {
+    public function delete(Request $request)
+    {
+        try {
+            $link = AssociationWebLink::find($request->id);
+
+            if (!$link) {
+                return response()->json(['success' => false, 'message' => 'Link not found!'], 404);
+            }
+
             $link->delete();
-            return response()->json(['message' => 'Association web URL deleted successfully.']);
-        }
 
-        return response()->json(['message' => 'Link not found.'], 404);
+            return response()->json(['success' => true, 'message' => 'Link deleted successfully!']);
+        } catch (\Exception $exception) {
+            return response()->json(['success' => false, 'message' => $exception->getMessage()], 500);
+        }
     }
+
+
 }

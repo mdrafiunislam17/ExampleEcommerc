@@ -42,10 +42,16 @@
                               <td>{{ $item->email }}</td>
                               <td>{{ $item->mobile }}</td>
                               <td>{{ date('d-m-Y',strtotime($item->created_at)) }}</td>
-                              <td><a target="_blank" href="{{asset('uploads/apply_job/'.$item->cv)}}"><i class="fa fa-file-pdf-o"></i></a></td>
-                              <td><img width="80px" height="60px" src="{{asset('uploads/apply_job/'.$item->photo)}}" alt=""></td>
                               <td>
-                                  <a class="btn btn-primary btn-sm" href="{{route('admin.job.apply.details',['job'=>$item->id])}}">Details</a>
+                                  <a target="_blank" href="{{ Storage::url($item->cv) }}">
+                                      <i class="fa fa-file-pdf-o"></i>
+                                  </a>
+                              </td>
+
+                              <td><img width="80px" height="60px" src="{{ Storage::url($item->photo) }}" alt=""></td>
+
+                              <td>
+
                                   <a role="button" class="btn btn-danger btn-sm btnDelete" data-id="{{ $item->id }}">Delete</a>
                               </td>
                           </tr>
@@ -103,10 +109,15 @@
             $('#modalBtnDelete').click(function () {
                 $.ajax({
                     method: "POST",
-                    url: "{{ route('admin.job.apply.delete') }}",
-                    data: { id: selectedId }
-                }).done(function( msg ) {
+                    url: "{{ route('admin.jobs.destroy', ':id') }}".replace(':id', selectedId), // Correct route formatting
+                    data: {
+                        _method: "DELETE", // Laravel requires DELETE method
+                        _token: "{{ csrf_token() }}" // Include CSRF token for security
+                    }
+                }).done(function(msg) {
                     location.reload();
+                }).fail(function(xhr) {
+                    alert('Error: ' + xhr.responseText);
                 });
             });
         });

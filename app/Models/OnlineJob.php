@@ -23,11 +23,8 @@ class OnlineJob extends Model
         'email',
         'mobile',
         'photo',
+        'cv',
     ];
 
-//    protected $casts = [
-//        'date_of_birth' => 'date',
-//        'gender' => 'integer',
-//        'martial_status' => 'integer',
-//    ];
+
 }

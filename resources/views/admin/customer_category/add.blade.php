@@ -12,6 +12,13 @@
                     <h3 class="box-title">Category Information</h3>
                 </div>
                 <!-- /.box-header -->
+
+                @if(session('message'))
+                    <div class="alert alert-success">
+                        {{ session('message') }}
+                    </div>
+                @endif
+
                 <!-- form start -->
                 <form class="form-horizontal" method="POST" action="{{ route('admin.customer.category.add') }}">
                     @csrf
@@ -34,7 +41,7 @@
                             <label class="col-sm-2 control-label">Sort</label>
 
                             <div class="col-sm-10">
-                                <input type="text" class="form-control" placeholder="Enter Sort"
+                                <input type="number" class="form-control" placeholder="Enter Sort"
                                        name="sort" value="{{ old('sort') }}">
 
                                 @error('sort')
@@ -47,7 +54,6 @@
                             <label class="col-sm-2 control-label">Status</label>
 
                             <div class="col-sm-10">
-
                                 <div class="radio" style="display: inline">
                                     <label>
                                         <input type="radio" name="status" value="1" {{ old('status') == '1' ? 'checked' : '' }}>
